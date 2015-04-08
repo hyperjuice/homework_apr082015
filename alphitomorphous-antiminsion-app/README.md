@@ -9,7 +9,7 @@ Just like last night, this repo has two branches: `master` and `solutions`. Solu
 
 For those who weren't clear on how to switch branches last night (if you want to peek at the solution or open the solution with `nodemon`), here's a quick tutorial:
 
-After forking and cloning the repo:
+After forking and cloning the repo (or if you already did that last night, just make sure that before running the command below you have `cd`'d into the `express_labs` directory that was created when you cloned the repository).
 
 ```bash
 git branch solutions origin/solutions # Creates a local branch that contains the solution I created
@@ -44,7 +44,7 @@ Instead of forking again, you could also do the following at a bash prompt:
 cd express_labs # move into the directory where you cloned the repo for last night's homework
 
 # Add SF-WDI-17 organization's repo so you can pull from us into your forked copy:
-git add remote upstream https://github.com/sf-wdi-17/express_labs.git # be sure to read what git says when you run this command and make sure you're not getting any errors (i.e., "fatal: Not a git repository (or any of the parent directories): .git" would mean you didn't make sure to cd into the express_labs repo before running this command).
+git add remote upstream https://github.com/sf-wdi-17/express_labs.git # make sure git isn't reporting any errors, and then do:
 
 # Now you get the updates to the repo and merge them for each branch
 git fetch upstream # This will grab the latest updates
