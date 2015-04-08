@@ -44,7 +44,7 @@ Instead of forking again, you could also do the following at a bash prompt:
 cd express_labs # move into the directory where you cloned the repo for last night's homework
 
 # Add SF-WDI-17 organization's repo so you can pull from us into your forked copy:
-git add remote upstream https://github.com/sf-wdi-17/express_labs.git # make sure git isn't reporting any errors, and then do:
+git add remote upstream https://github.com/sf-wdi-17/express_labs.git # be sure to read what git says when you run this command and make sure you're not getting any errors (i.e., "fatal: Not a git repository (or any of the parent directories): .git" would mean you didn't make sure to cd into the express_labs repo before running this command).
 
 # Now you get the updates to the repo and merge them for each branch
 git fetch upstream # This will grab the latest updates
