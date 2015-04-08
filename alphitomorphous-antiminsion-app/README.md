@@ -1,6 +1,28 @@
 # Making Headlines
 ## ExpressJS
 
+### Notes
+
+Please [let me know](mailto:brett.levenson@ga.co) if there are any issues with the set up instructions or you have questions about the lab. I'll be on Slack for a while.
+
+Just like last night, this repo has two branches: `master` and `solutions`. Solutions contains my solution to the lab, but you should complete your work in the `master` branch.
+
+For those who weren't clear on how to switch branches last night (if you want to peek at the solution or open the solution with `nodemon`), here's a quick tutorial:
+
+After forking and cloning the repo:
+
+```bash
+git branch solutions origin/solutions # Creates a local branch that contains the solution I created
+
+# Then, to switch to solutions:
+git checkout solutions
+
+# To switch back to master
+git checkout master
+```
+
+Also, see the instructions below on how to update your `express_labs` repo with tonight's lab.
+
 ### Background
 
 <img src="daily_planet.jpg">
@@ -9,86 +31,103 @@ Weclome to the daily planet, we need your superhuman developer skills to help us
 
 ### App Set Up
 
-First, you'll need to fork and clone this repository.
+This repo is just a copy of the solution to last night's homework (which asked you to build associations between authors and articles for the daily planet).
+
+If you finished last night's homework, you can start just keep working on what you already created (although you might want to copy the entire directory before you start). But, if you'd rather just start with the solution I created for yesterday's homework, feel free to fork and clone the repo again to get tonight's homework.
+
 ```bash
 git clone https://<path_to_forked_repo_on_github>
 ```
 
-### DB Set Up
-
-After you clone the repo, you'll want to cd into the repo directory (`cd express_labs/baalshem-adrenotropic-app`) and then run the following commands at a bash prompt (you may want to copy and paste to make sure you get it right:
-
+Instead of forking again, you could also do the following at a bash prompt:
 ```bash
-createdb baalshem-adrenotropic-app && psql -d baalshem-adrenotropic-app -a -f baalshem-adrenotropic-db.sql
+cd express_labs # move into the directory where you cloned the repo for last night's homework
+
+# Add SF-WDI-17 organization's repo so you can pull from us into your forked copy:
+git add remote upstream https://github.com/sf-wdi-17/express_labs.git # make sure git isn't reporting any errors, and then do:
+
+# Now you get the updates to the repo and merge them for each branch
+git fetch upstream # This will grab the latest updates
+git checkout master # Switch to master branch
+git merge upstream/master # merge the latest into your local copy
+git checkout solutions # switch to solutions branch
+git merge upstream/solutions # merge the solution for tonight into your local copy
+
+# Finally, switch back to master branch to start working
+git checkout master
+
+# Open sublime
+cd alphitomorphous-antiminsion-app # yep, you read that right
+subl .
 ```
 
-This command will initialize the database and put some starter data in for you.
+Forking again is ok, but option 2 will be better in the long run as you'll be able to get each night's homework (for a while anyway) by just running 'git fetch upstream'
+
+### DB Set Up
+
+You should have created the DB for this project last night, so you don't have to do any additional DB set up if you **don't want to**—but, if you'd like to start with a fresh DB for some reason, you can run the following:
+
+```bash
+createdb alphitomorphous-antiminsion-app && psql -d alphitomorphous-antiminsion-app -a -f baalshem-adrenotropic-db.sql
+```
+
+If you decide to create a new DB using the code above, **don't forget** to modify `config/config.json` and change it to match:
+
+```json
+  "development": {
+    "database": "alphitomorphous-antiminsion-app",
+    "host": "127.0.0.1",
+    "dialect": "postgres"
+  },
+```
 
 ### What You Will Be Responsible For:
 
-If you wish, you can start with your weekend lab instead of starting with this repo, but you may find its easier to start with what I've prepared rather than copying and pasting all the views over.
+Starting with either **your solution to last night's lab** or the **master branch of alphitomorphous-antiminsion-app** you should be looking to get user authentication working for *The Daily Planet*.
 
-#### Creating the Models
+Which means you'll have to:
 
-You'll have to create the two models we need using the `sequelize` command line tools. The models we'll need are:
+#### Create a User Model
 
-  - Article
-      + Attributes: title, content
-  - Author
-      + Attributes: first_name, last_name
+Create a User model with the following attributes:
 
-Figure out how to generate these models using `sequelize model:create` and then continue to the associations (explained next).
+ - email
+ - passwordDigest
 
-The relationship we're going to be creating between them is a One-to-many relationship. That is, an *Author* `hasMany` *Articles*, and an *Article* `belongsTo` an *Author*.
+Generate this model using `sequelize model:create`.
 
-To set up the relationship, you'll need to edit the models that `sequelize` creates for you.
+Don't forget to **run `sequelize db:migrate`** after you've generated your `User` model.
 
 #### Routes
 
-You'll need the following `article` routes:
+By referring to Del's lesson notes from today, create the necessary routes so that someone coming to *The Daily Planet's* web site can:
 
-* `get`  `/articles` to display a summary of each article.
-* `get` `/articles/new` to get a form to save a new article
-    - Note that I've already created the views and the `articles/new.ejs` view includes a form that allows the user to select the author for each new article using a drop-down menu.
-* `post` `/articles` to save an article
-* `get` `/articles/:id` to find an article by id and displaya it
-* `get` `/articles/:id/edit` to edit a specific article
-    - This is bonus work to some degree, but you'll want to take a look out how I built `articles/new.ejs` to discover how to create an edit form that allows you to change the author who wrote an article.
-    - Note: If you do this part, you'll also need an update route:
-    `put` `/articles/:id`
+ - Create a new User
+ - Login as a new User
+ - View a user's profile
 
-You'll need the following `author` routes:
+You'll also need to create the relevant actions inside these routes to:
 
-  - `get` `/authors` to display all authors in db
-  - `get` `/authors/new` to render the form to add a new author
-  - `post` `/authors` to save a new author
-  - `get` `/authors/:id` to find an author by id in the database
+ - Store a new user in the database
+ - Authenticate a user at log-in
+ - Store an authenticated user in a session
+ - Render the user profile
 
-You'll need the following `site` related routes:
+#### Navigation
 
-* `get` `/` serve the homepage of your site.
-  - This route should point to `views/site/index.ejs` and I'd like to see everyone generate some basic navigational links to help people get to the following URLs:
-    + `/articles`
-    + `/authors`
-
-
-* `get` `/about` serve a static about daily planet page.
-* `get` `/contact` serve a static `contact` page.
+Add some navigation to the **site index** `view` to make it easy for a visitor to perform these user actions.
 
 #### Views
 
-Note that I have already created the views for you including the forms and layouts.
-
-All your article related views are in an `views/articles` folder. Each article should utilize `ejs` to render the page. Your author views are in the `views/authors` folder. Your `site` related views `index`, `about`, and `contact` are in the folder `views/site`. 
-
-You'll want to review the EJS files that go with each route to figure out what query you want to build with `sequelize` and what variables to pass through using `res.render()`.
-
+You're going to need a bunch of new views that you'll place in `views/users/` to render a user profile, render a user creation form, and render a user login form, etc.
 
 #### Bonus
 
-Include some navigation links on each page to help the user navigate the site.
+If you want to try to implement **Authorization** tonight, you're welcome to try. There are notes about it in our notes repo under today's `dusk` lesson.
 
-### Note
-Please [let me know](mailto:brett.levenson@ga.co) if there are any issues with the set up instructions or you have questions about the lab. I'll be on Slack for a while.
+ - This should be set up such that:
+   - One `User` is associated with one `Author`
+   - A `User` can only edit an article that he/she created.
+   - When created, an `Article` knows who its `Author` and `User` is.
 
-> Last updated by Brett Levenson on April 6, 2015.
+> Last updated by Brett Levenson on April 7, 2015.
