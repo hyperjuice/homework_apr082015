@@ -1,18 +1,148 @@
-var express = require('express');
 var bodyParser = require('body-parser'),
+	express = require('express'),
 	ejs = require('ejs'),
 	methodOverride = require('method-override'),
-	pg = require("pg");
-
-
-var app = express();
+	db = require("./models");
+	session = require('express-session'),
+	pg = require("pg"),
+	app = express();
 
 app.set('view engine', 'ejs');
 app.use(bodyParser.urlencoded({extended: true}));
 
-// Refactor connection and query code
-var db = require("./models");
+// for express-session (sets the sessions up)
+app.use(session({
+  secret: 'super secret', // you'll want to hide this -- we'll discuss later
+  resave: false,		 // the secret stays same for all of use of app
+  saveUninitialized: true
+}));
+// AUTHENTICATION ROUTES
+// let's make our own middleware
+// it runs this with every request
+// 
+app.use("/", function (req, res, next) {
+    // the req is the incoming req
+    // and the login key is what we made up
+    
+    // 1st function
+    req.login = function (user) {  // 'login' could've been 'taco'
+        // set the value on session.userId
+        req.session.userId = user.id; // comes from app.use(session)
+    				//^ this is a key that were making up right here
 
+    };
+    
+  // 2nd function. So user has logged in at this pt, and now we check them against
+  // the database and if it jives, we can move on, [if not, blah]
+  //
+  req.currentUser = function () {  // 'req' is the request object, and we're putting stuff on it
+    return db.User.
+      find({
+        where: {
+          id: req.session.userId
+       }
+      }).
+      then(function (user) {
+        req.user = user;
+        return user;
+      })
+  };
+  //3rd fucntion - logout
+  req.logout = function () {
+    req.session.userId = null;
+    req.user = null;
+  }
+   next(); // tells us to go to next middleware 
+});        // the 'request' comes into the server and keeps going from one middleware to the next
+          // the req variable only exists when we create it by actually makinga 'request'
+
+// this is a first route -- just renders the signup page
+app.get("/signup", function (req, res) {
+  res.render('users/signup.ejs');
+});
+
+// now do the post for signup
+app.post("/signup", function (req, res) {
+
+  // grab the user from the params
+  var user = req.body.user;
+
+  // create the new user
+  db.User
+      .createSecure(user.email, user.password)
+      .then(function(){
+          res.redirect('/login');
+        });
+});
+// but we don't have a route for 'login' yet: this renders the page
+app.get("/login", function (req, res) {
+  res.render('users/login');
+});
+
+// this submits the info for logging in           // u|p: darrell|darrell
+app.post ("/login", function(req, res) {
+  var user = req.body.user;
+  db.User
+  .authenticate(user.email, user.password)
+  .then(function(dbUser) {
+    req.login(dbUser);
+    res.redirect("/profile");
+  });
+});
+
+// renders the profile page
+app.get("/profile", function (req, res) {
+  req.currentUser()  // returns current user from the session
+      .then(function (user) {
+        res.render("users/profile", { currentUser: user } );  // d
+      });
+});
+
+
+// what's next is after someone's submitted 
+//stuff
+// remember to have Method=POST and action=users 
+//for the form related to this
+app.post('/users', function(req, res) {
+	var user = req.body.user;
+
+	db.User.
+		createSecure(user.email, user.password).
+		then(function() {
+			res.send('Youre signed up');
+		});
+});
+
+// this tells us we need a login view
+app.get("/login", function (req, res) {
+  res.render("login");
+});
+
+// login will authenticate a User
+app.post("/login", function (req, res) {
+	var user = req.body.user; // which is gotten from user putting in data
+
+	db.User.
+	authenticate(user.email, user.password).
+	then(function(user) { //put in (user) bc it's a promise
+		req.login(user); // see line 28
+		res.redirect('/profile');
+	});
+});	
+
+
+
+
+	// bc we want the profile page to be visible to only the logged in user
+app.get("/profile", function (req, res) {
+  req.currentUser()
+    .then(function (user) {
+    	console.log("\n\n\n\n\n\nWHAT",user);
+      res.render("profile.ejs", {user: user});
+    })
+});
+
+// ARTICLE ROUTES
 app.get('/articles', function(req,res) {
   db.Article
   	.findAll({ include: db.Author })
@@ -45,7 +175,7 @@ app.get('/articles/:id', function(req, res) {
   
 })
 
-// Fill in these author routes!
+// AUTHORS ROUTES
 app.get('/authors', function(req, res) {
 	db.Author
 		.all()
@@ -73,6 +203,14 @@ app.get('/authors/:id', function(req, res) {
 			res.render('authors/author', { ejsAuthor: dbAuthor })
 		})
 });
+
+// logout route  --> calls Line 51
+app.get("/logout", function(req, res) {
+    req.logout();
+    res.redirect("/login");
+});
+
+
 
 app.get('/', function(req,res) {
   res.render('site/index.ejs');
